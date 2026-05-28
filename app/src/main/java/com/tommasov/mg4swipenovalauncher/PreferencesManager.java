@@ -33,4 +33,9 @@ public class PreferencesManager {
     public String getBackButtonVisibility() {
         return sharedPreferences.getString(KEY_BACK_BUTTON_VISIBILITY, "INVISIBLE");
     }
+
+    /** Convenience: true if the floating back button is hidden */
+    public boolean isBackButtonHidden() {
+        return !"VISIBLE".equals(getBackButtonVisibility());
+    }
 }

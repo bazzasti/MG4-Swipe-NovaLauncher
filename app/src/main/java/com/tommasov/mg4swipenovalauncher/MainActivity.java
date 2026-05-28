@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void startSwipeService() {
         Intent intent = new Intent(this, SwipeService.class);
-        startService(intent);
+        startForegroundService(intent);
     }
 
     @Override

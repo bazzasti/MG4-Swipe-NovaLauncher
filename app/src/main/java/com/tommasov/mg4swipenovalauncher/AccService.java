@@ -1,6 +1,6 @@
 package com.tommasov.mg4swipenovalauncher;
 
-import static androidx.core.content.ContextCompat.registerReceiver;
+import android.os.Build;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.BroadcastReceiver;
@@ -16,7 +16,11 @@ public class AccService extends AccessibilityService {
         super.onCreate();
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.tommasov.mg4swipenovalauncher.ACTION_BACK");
-        registerReceiver(backReceiver, filter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(backReceiver, filter, RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(backReceiver, filter);
+        }
     }
 
     private final BroadcastReceiver backReceiver = new BroadcastReceiver() {

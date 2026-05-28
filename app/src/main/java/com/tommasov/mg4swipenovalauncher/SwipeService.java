@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.view.Display;
+import android.view.WindowMetrics;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Gravity;
@@ -123,11 +124,16 @@ public class SwipeService extends Service {
         int layoutFlags;
         layoutFlags = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
 
-        WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        int screenWidth = size.x;
+        int screenWidth;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowMetrics metrics = windowManager.getCurrentWindowMetrics();
+            screenWidth = metrics.getBounds().width();
+        } else {
+            Display display = windowManager.getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            screenWidth = size.x;
+        }
 
         int halfScreenWidth = screenWidth / 2;
 
@@ -155,7 +161,7 @@ public class SwipeService extends Service {
         leftGestureDetector = new GestureDetector(this, new LeftSwipeGestureListener());
         rightGestureDetector = new GestureDetector(this, new RightSwipeGestureListener());
 
-        leftSwipeArea.setOnTouchListener(new View.OnTouchListener() {
+        leftSwipeArea.setOnTouchListener(new View.OnTouchListener() { @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 return leftGestureDetector.onTouchEvent(event);
@@ -252,16 +258,18 @@ public class SwipeService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (leftSwipeArea != null) {
-            windowManager.removeView(leftSwipeArea);
-        }
-        if (rightSwipeArea != null) {
-            windowManager.removeView(rightSwipeArea);
-        }
-
-        if (floatingButton != null) {
-            windowManager.removeView(floatingButton);
-        }
+        try {
+            if (leftSwipeArea != null) windowManager.removeView(leftSwipeArea);
+        } catch (Exception ignored) {}
+        try {
+            if (rightSwipeArea != null) windowManager.removeView(rightSwipeArea);
+        } catch (Exception ignored) {}
+        try {
+            if (floatingButton != null) windowManager.removeView(floatingButton);
+        } catch (Exception ignored) {}
+        leftSwipeArea = null;
+        rightSwipeArea = null;
+        floatingButton = null;
     }
 
     @Override
