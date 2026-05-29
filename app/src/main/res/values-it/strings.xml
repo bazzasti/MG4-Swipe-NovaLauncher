@@ -9,6 +9,6 @@
     <string name="grant_permission">Concedi Permesso</string>
     <string name="permission_overlay_explanation">Per funzionare correttamente, l\'app ha bisogno del permesso di disegnare sopra le altre app. \nUna volta concesso devi riaprire l\'applicazione.</string>
     <string name="hide_back_button_description">Nascondi il bottone indietro flottante, utile per i tagliandi (nascosto di default)</string>
-    <string name="help_swipe_back">Help: Swipe up here to go back (this simulate the physical back button)</string>
-    <string name="help_swipe_launch">Help: Swipe up here to open selected app</string>
+    <string name="help_swipe_back">Scorri verso l'alto qui per tornare indietro (simula il pulsante fisico Indietro)</string>
+    <string name="help_swipe_launch">Scorri verso l'alto qui per aprire l'app selezionata</string>
 </resources>
