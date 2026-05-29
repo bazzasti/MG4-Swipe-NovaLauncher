@@ -33,6 +33,15 @@
             android:textAlignment="viewEnd"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
 
+        <Button
+            android:id="@+id/uninstall_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="@string/uninstall"
+            android:textSize="20sp"
+            android:textColor="#FF5555" />
+
     </LinearLayout>
 
     <TextView

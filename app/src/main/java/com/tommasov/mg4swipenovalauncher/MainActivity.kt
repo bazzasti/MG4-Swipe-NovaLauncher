@@ -2,6 +2,7 @@ package com.tommasov.mg4swipenovalauncher
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -69,6 +70,19 @@ class MainActivity : AppCompatActivity() {
             binding.switchBackButton.isChecked = hide
             stopSwipeService()
             startSwipeService()
+        }
+
+        binding.uninstallButton.setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(getString(R.string.uninstall))
+                .setMessage(getString(R.string.uninstall_confirm))
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    stopSwipeService()
+                    val intent = Intent(Intent.ACTION_DELETE, Uri.parse("package:$packageName"))
+                    startActivity(intent)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
         }
 
         startSwipeService()

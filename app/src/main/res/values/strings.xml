@@ -15,4 +15,6 @@
     <string name="notification_channel">Swipe Service Channel</string>
     <string name="toast_selected">Selected: %s</string>
     <string name="toast_no_app">No launchable app found</string>
+    <string name="uninstall">Uninstall</string>
+    <string name="uninstall_confirm">This will stop the swipe service and remove the app. Continue?</string>
 </resources>
