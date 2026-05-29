@@ -10,6 +10,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.tommasov.mg4swipenovalauncher.databinding.ActivityMainBinding
 
+/**
+ * Settings screen: app picker list, back button toggle, and uninstall button.
+ * Starts/stops SwipeService on launch and when settings change.
+ */
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding

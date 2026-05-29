@@ -11,6 +11,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.tommasov.mg4swipenovalauncher.databinding.ActivityPermissionOverlayBinding
 import com.tommasov.mg4swipenovalauncher.databinding.ActivityPermissionAccessibilityBinding
 
+/**
+ * Entry point (launcher activity). Checks overlay and accessibility permissions,
+ * redirects to system settings if either is missing, then forwards to MainActivity.
+ */
 class PermissionActivity : AppCompatActivity() {
 
     private val permissionLauncher = registerForActivityResult(

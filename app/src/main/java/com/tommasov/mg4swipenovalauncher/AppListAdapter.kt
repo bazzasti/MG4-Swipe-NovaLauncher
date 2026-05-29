@@ -10,6 +10,11 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import com.tommasov.mg4swipenovalauncher.databinding.ListItemAppBinding
 
+/**
+ * ListView adapter that displays installed apps with a checkmark on the selected one.
+ * Launcher apps are shown at the top. System apps can be toggled visible/hidden.
+ * Uses ViewBinding (ListItemAppBinding) with a ViewHolder pattern for recycling.
+ */
 class AppListAdapter(
     context: Context,
     private val allApps: List<ApplicationInfo>,
