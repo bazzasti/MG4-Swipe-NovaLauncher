@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -23,6 +24,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 public class SwipeService extends Service {
     private PreferencesManager preferencesManager;
@@ -41,17 +43,28 @@ public class SwipeService extends Service {
 
         if (Settings.canDrawOverlays(this)) {
             createNotificationChannel();
+            Intent openApp = new Intent(this, MainActivity.class);
+            openApp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, openApp, PendingIntent.FLAG_IMMUTABLE);
+
             Notification notification = new Notification.Builder(this, CHANNEL_ID)
-                    .setContentTitle("MG4 Nova Launcher Swipe Service")
+                    .setContentTitle("MG4 Swipe Active")
+                    .setContentText("Tap to change settings")
                     .setSmallIcon(R.mipmap.ismart_launcher)
+                    .setContentIntent(pendingIntent)
                     .build();
             startForeground(1, notification);
             AppLogger.i("SwipeService started");
 
+            swipeThreshold = preferencesManager.getSwipeThreshold();
+            swipeVelocityThreshold = preferencesManager.getSwipeVelocity();
+
             try {
                 swipe();
             } catch (Exception e) {
-                AppLogger.e("Failed to init swipe zones", e);
+                AppLogger.e("Failed to init swipe zones — stopping service", e);
+                stopSelf();
+                return;
             }
             try {
                 backButton();
@@ -64,8 +77,8 @@ public class SwipeService extends Service {
         }
     }
 
-    private static final int SWIPE_THRESHOLD = 100;
-    private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+    private int swipeThreshold = 100;
+    private int swipeVelocityThreshold = 100;
 
     /** Reusable swipe-up gesture listener that triggers a callback on fling-up */
     private class SwipeUpListener extends SimpleOnGestureListener {
@@ -75,7 +88,7 @@ public class SwipeService extends Service {
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             float diffY = e2.getRawY() - e1.getRawY();
-            if (diffY < 0 && Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
+            if (diffY < 0 && Math.abs(diffY) > swipeThreshold && Math.abs(velocityY) > swipeVelocityThreshold) {
                 action.run();
                 return true;
             }
@@ -85,7 +98,7 @@ public class SwipeService extends Service {
 
     private void performBackAction() {
         Intent intent = new Intent("com.tommasov.mg4swipenovalauncher.ACTION_BACK");
-        sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     static final String DEFAULT_LAUNCHER = "com.teslacoilsw.launcher";
@@ -93,6 +106,11 @@ public class SwipeService extends Service {
     private void openLauncher() {
         String packageName = preferencesManager.getSelectedPackage();
         if (packageName == null) {
+            packageName = DEFAULT_LAUNCHER;
+        }
+        // Validate package still exists
+        if (getPackageManager().getLaunchIntentForPackage(packageName) == null) {
+            AppLogger.w("Selected package gone: " + packageName + " — falling back to default");
             packageName = DEFAULT_LAUNCHER;
         }
 
@@ -162,19 +180,9 @@ public class SwipeService extends Service {
         leftGestureDetector = new GestureDetector(this, new SwipeUpListener(this::performBackAction));
         rightGestureDetector = new GestureDetector(this, new SwipeUpListener(this::openLauncher));
 
-        leftSwipeArea.setOnTouchListener(new View.OnTouchListener() { @SuppressLint("ClickableViewAccessibility")
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return leftGestureDetector.onTouchEvent(event);
-            }
-        });
+        leftSwipeArea.setOnTouchListener((v, event) -> leftGestureDetector.onTouchEvent(event));
 
-        rightSwipeArea.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return rightGestureDetector.onTouchEvent(event);
-            }
-        });
+        rightSwipeArea.setOnTouchListener((v, event) -> rightGestureDetector.onTouchEvent(event));
     }
 
     private void backButton() {
@@ -200,8 +208,8 @@ public class SwipeService extends Service {
                 PixelFormat.TRANSLUCENT);
 
         params.gravity = Gravity.TOP | Gravity.LEFT;
-        params.x = 25;
-        params.y = 5;
+        params.x = preferencesManager.getButtonX();
+        params.y = preferencesManager.getButtonY();
 
         try {
             windowManager.addView(floatingButton, params);
@@ -242,6 +250,9 @@ public class SwipeService extends Service {
                         if (Math.abs(event.getRawX() - initialTouchX) <= CLICK_ACTION_THRESHOLD &&
                                 Math.abs(event.getRawY() - initialTouchY) <= CLICK_ACTION_THRESHOLD) {
                             floatingButton.performClick();
+                        } else {
+                            // Save new position after drag
+                            preferencesManager.saveButtonPosition(params.x, params.y);
                         }
 
                         return true;
@@ -253,12 +264,20 @@ public class SwipeService extends Service {
                 return false;
             }
         });
-        floatingButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                performBackAction();
-            }
-        });
+        floatingButton.setOnClickListener(v -> performBackAction());
+    }
+
+    @Override
+    public void onConfigurationChanged(android.content.res.Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        AppLogger.i("Configuration changed — recreating swipe zones");
+        try {
+            if (leftSwipeArea != null) windowManager.removeView(leftSwipeArea);
+            if (rightSwipeArea != null) windowManager.removeView(rightSwipeArea);
+        } catch (Exception ignored) {}
+        leftSwipeArea = null;
+        rightSwipeArea = null;
+        try { swipe(); } catch (Exception e) { AppLogger.e("Failed to recreate zones", e); }
     }
 
     @Override

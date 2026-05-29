@@ -38,4 +38,22 @@ public class PreferencesManager {
     public boolean isBackButtonHidden() {
         return !"VISIBLE".equals(getBackButtonVisibility());
     }
+
+    // ── Floating button position ──
+
+    public void saveButtonPosition(int x, int y) {
+        sharedPreferences.edit().putInt("btn_x", x).putInt("btn_y", y).apply();
+    }
+
+    public int getButtonX() { return sharedPreferences.getInt("btn_x", 25); }
+
+    // ── Swipe sensitivity ──
+
+    public int getSwipeThreshold() { return sharedPreferences.getInt("swipe_threshold", 100); }
+    public int getSwipeVelocity() { return sharedPreferences.getInt("swipe_velocity", 100); }
+
+    public void saveSwipeSensitivity(int threshold, int velocity) {
+        sharedPreferences.edit().putInt("swipe_threshold", threshold).putInt("swipe_velocity", velocity).apply();
+    }
+    public int getButtonY() { return sharedPreferences.getInt("btn_y", 5); }
 }

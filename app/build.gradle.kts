@@ -16,6 +16,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -34,6 +38,7 @@ android {
 dependencies {
 
     implementation(libs.appcompat)
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
