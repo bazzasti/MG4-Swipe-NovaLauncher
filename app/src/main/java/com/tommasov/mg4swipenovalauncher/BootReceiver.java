@@ -13,7 +13,12 @@ public class BootReceiver extends BroadcastReceiver {
     }
 
     private void startSwipeService(Context context) {
-        Intent serviceIntent = new Intent(context, SwipeService.class);
-        context.startForegroundService(serviceIntent);
+        try {
+            Intent serviceIntent = new Intent(context, SwipeService.class);
+            context.startForegroundService(serviceIntent);
+            AppLogger.i("SwipeService started from boot");
+        } catch (Exception e) {
+            AppLogger.e("Failed to start SwipeService from boot", e);
+        }
     }
 }

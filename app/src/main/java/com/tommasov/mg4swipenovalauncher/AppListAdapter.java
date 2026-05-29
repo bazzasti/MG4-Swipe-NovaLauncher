@@ -93,12 +93,18 @@ public class AppListAdapter extends ArrayAdapter<ApplicationInfo> {
         }
 
         ApplicationInfo appInfo = getItem(position);
+        if (appInfo == null) return convertView;
+
         ImageView iconView = convertView.findViewById(R.id.app_icon);
         TextView nameView = convertView.findViewById(R.id.app_name);
         ImageView checkmarkView = convertView.findViewById(R.id.app_checkmark);
 
-        iconView.setImageDrawable(appInfo.loadIcon(packageManager));
-        nameView.setText(appInfo.loadLabel(packageManager));
+        try {
+            iconView.setImageDrawable(appInfo.loadIcon(packageManager));
+            nameView.setText(appInfo.loadLabel(packageManager));
+        } catch (Exception e) {
+            nameView.setText(appInfo.packageName);
+        }
 
         checkmarkView.setVisibility(appInfo.packageName.equals(selectedPackage) ? View.VISIBLE : View.INVISIBLE);
 

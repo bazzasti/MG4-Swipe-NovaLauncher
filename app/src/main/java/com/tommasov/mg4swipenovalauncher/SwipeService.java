@@ -46,9 +46,18 @@ public class SwipeService extends Service {
                     .setSmallIcon(R.mipmap.ismart_launcher)
                     .build();
             startForeground(1, notification);
+            AppLogger.i("SwipeService started");
 
-            swipe();
-            backButton();
+            try {
+                swipe();
+            } catch (Exception e) {
+                AppLogger.e("Failed to init swipe zones", e);
+            }
+            try {
+                backButton();
+            } catch (Exception e) {
+                AppLogger.e("Failed to init back button", e);
+            }
 
         } else {
             stopSelf();
@@ -87,12 +96,18 @@ public class SwipeService extends Service {
             packageName = DEFAULT_LAUNCHER;
         }
 
-        Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
-        if (intent != null) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-            startActivity(intent);
-        } else {
-            Toast.makeText(this, "Package not found", Toast.LENGTH_SHORT).show();
+        try {
+            Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
+                AppLogger.i("Launched: " + packageName);
+            } else {
+                AppLogger.w("Package not found: " + packageName);
+                Toast.makeText(this, "Package not found: " + packageName, Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            AppLogger.e("Failed to launch " + packageName, e);
         }
     }
 
@@ -136,8 +151,13 @@ public class SwipeService extends Service {
 
         rightParams.gravity = Gravity.BOTTOM | Gravity.RIGHT;
 
-        windowManager.addView(leftSwipeArea, leftParams);
-        windowManager.addView(rightSwipeArea, rightParams);
+        try {
+            windowManager.addView(leftSwipeArea, leftParams);
+            windowManager.addView(rightSwipeArea, rightParams);
+            AppLogger.i("Swipe zones added");
+        } catch (Exception e) {
+            AppLogger.e("Failed to add swipe zones", e);
+        }
 
         leftGestureDetector = new GestureDetector(this, new SwipeUpListener(this::performBackAction));
         rightGestureDetector = new GestureDetector(this, new SwipeUpListener(this::openLauncher));
@@ -183,7 +203,12 @@ public class SwipeService extends Service {
         params.x = 25;
         params.y = 5;
 
-        windowManager.addView(floatingButton, params);
+        try {
+            windowManager.addView(floatingButton, params);
+            AppLogger.i("Floating back button added");
+        } catch (Exception e) {
+            AppLogger.e("Failed to add floating button", e);
+        }
 
         floatingButton.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
@@ -238,6 +263,7 @@ public class SwipeService extends Service {
 
     @Override
     public void onDestroy() {
+        AppLogger.i("SwipeService destroyed");
         super.onDestroy();
         try {
             if (leftSwipeArea != null) windowManager.removeView(leftSwipeArea);
@@ -256,6 +282,7 @@ public class SwipeService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (!Settings.canDrawOverlays(this)) {
+            AppLogger.w("Overlay permission revoked — stopping service");
             stopSelf();
             return START_NOT_STICKY;
         }

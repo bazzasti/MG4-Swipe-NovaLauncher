@@ -105,13 +105,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void stopSwipeService() {
-        Intent intent = new Intent(this, SwipeService.class);
-        stopService(intent);
+        try {
+            Intent intent = new Intent(this, SwipeService.class);
+            stopService(intent);
+        } catch (Exception e) {
+            AppLogger.e("Failed to stop SwipeService", e);
+        }
     }
 
     private void startSwipeService() {
-        Intent intent = new Intent(this, SwipeService.class);
-        startForegroundService(intent);
+        try {
+            Intent intent = new Intent(this, SwipeService.class);
+            startForegroundService(intent);
+        } catch (Exception e) {
+            AppLogger.e("Failed to start SwipeService", e);
+        }
     }
 
     @Override
