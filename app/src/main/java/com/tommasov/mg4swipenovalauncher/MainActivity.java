@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        preferencesManager = new PreferencesManager(this);
+        preferencesManager = PreferencesManager.getInstance(this);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
             preferencesManager.saveSelectedPackage(selectedApp.packageName);
             adapter.setSelectedPackage(selectedApp.packageName);
             adapter.notifyDataSetChanged();
-            Toast.makeText(MainActivity.this, "Selected: " + selectedApp.packageName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, String.format(getString(R.string.toast_selected), selectedApp.loadLabel(packageManager)), Toast.LENGTH_SHORT).show();
         });
 
         Button toggleSystemAppsButton = findViewById(R.id.toggle_system_apps_button);

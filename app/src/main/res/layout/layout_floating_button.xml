@@ -2,4 +2,5 @@
     android:id="@+id/floating_button"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/button_selector" />
+    android:background="@drawable/button_selector"
+    android:contentDescription="@string/help_swipe_back" />

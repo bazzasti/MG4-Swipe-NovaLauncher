@@ -6,3 +6,9 @@
 
 # Keep BootReceiver (referenced in manifest)
 -keep class com.tommasov.mg4swipenovalauncher.BootReceiver { *; }
+
+# Keep PreferencesManager singleton (accessed via reflection in some cases)
+-keep class com.tommasov.mg4swipenovalauncher.PreferencesManager { *; }
+
+# Keep AppLogger (utility class)
+-keep class com.tommasov.mg4swipenovalauncher.AppLogger { *; }

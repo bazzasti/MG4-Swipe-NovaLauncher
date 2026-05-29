@@ -6,12 +6,19 @@ import android.content.SharedPreferences;
 public class PreferencesManager {
     private static final String PREFS_NAME = "SwipeServicePrefs";
     private static final String KEY_PACKAGE_NAME = "packageName";
-    private static final String KEY_BACK_BUTTON_VISIBILITY= "backButtonVisibility";
+    private static final String KEY_BACK_BUTTON_VISIBILITY = "backButtonVisibility";
 
-    private SharedPreferences sharedPreferences;
+    private static PreferencesManager instance;
+    private final SharedPreferences sharedPreferences;
 
-    public PreferencesManager(Context context) {
-        this.sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    private PreferencesManager(Context context) {
+        this.sharedPreferences = context.getApplicationContext()
+                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    }
+
+    public static synchronized PreferencesManager getInstance(Context context) {
+        if (instance == null) instance = new PreferencesManager(context);
+        return instance;
     }
 
     public void saveSelectedPackage(String packageName) {

@@ -10,4 +10,9 @@
     <string name="hide_back_button_description">Hide the floating back button, useful for car servicing (this is hidden by default)</string>
     <string name="help_swipe_back">Help: Swipe up here to go back (this simulate the physical back button)</string>
     <string name="help_swipe_launch">Help: Swipe up here to open selected app</string>
+    <string name="notification_title">MG4 Swipe Active</string>
+    <string name="notification_text">Tap to change settings</string>
+    <string name="notification_channel">Swipe Service Channel</string>
+    <string name="toast_selected">Selected: %s</string>
+    <string name="toast_no_app">No launchable app found</string>
 </resources>

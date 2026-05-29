@@ -6,9 +6,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Build;
@@ -24,8 +22,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+@SuppressLint("ClickableViewAccessibility")
 public class SwipeService extends Service {
     private PreferencesManager preferencesManager;
     private static final String CHANNEL_ID = "SwipeServiceChannel";
@@ -48,8 +46,8 @@ public class SwipeService extends Service {
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, openApp, PendingIntent.FLAG_IMMUTABLE);
 
             Notification notification = new Notification.Builder(this, CHANNEL_ID)
-                    .setContentTitle("MG4 Swipe Active")
-                    .setContentText("Tap to change settings")
+                    .setContentTitle(getString(R.string.notification_title))
+                    .setContentText(getString(R.string.notification_text))
                     .setSmallIcon(R.mipmap.ismart_launcher)
                     .setContentIntent(pendingIntent)
                     .build();
@@ -97,8 +95,7 @@ public class SwipeService extends Service {
     }
 
     private void performBackAction() {
-        Intent intent = new Intent("com.tommasov.mg4swipenovalauncher.ACTION_BACK");
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        AccService.triggerBack();
     }
 
     static final String DEFAULT_LAUNCHER = "com.teslacoilsw.launcher";
@@ -108,21 +105,20 @@ public class SwipeService extends Service {
         if (packageName == null) {
             packageName = DEFAULT_LAUNCHER;
         }
-        // Validate package still exists
-        if (getPackageManager().getLaunchIntentForPackage(packageName) == null) {
-            AppLogger.w("Selected package gone: " + packageName + " — falling back to default");
-            packageName = DEFAULT_LAUNCHER;
-        }
-
         try {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
+            if (intent == null && !packageName.equals(DEFAULT_LAUNCHER)) {
+                AppLogger.w("Selected package gone: " + packageName + " — trying default");
+                packageName = DEFAULT_LAUNCHER;
+                intent = getPackageManager().getLaunchIntentForPackage(packageName);
+            }
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(intent);
                 AppLogger.i("Launched: " + packageName);
             } else {
-                AppLogger.w("Package not found: " + packageName);
-                Toast.makeText(this, "Package not found: " + packageName, Toast.LENGTH_SHORT).show();
+                AppLogger.w("No launchable app found");
+                Toast.makeText(this, getString(R.string.toast_no_app), Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             AppLogger.e("Failed to launch " + packageName, e);
@@ -180,13 +176,13 @@ public class SwipeService extends Service {
         leftGestureDetector = new GestureDetector(this, new SwipeUpListener(this::performBackAction));
         rightGestureDetector = new GestureDetector(this, new SwipeUpListener(this::openLauncher));
 
-        leftSwipeArea.setOnTouchListener((v, event) -> leftGestureDetector.onTouchEvent(event));
+        leftSwipeArea.setOnTouchListener((v, event) -> leftGestureDetector.onTouchEvent(event)); // suppressed via class-level annotation
 
         rightSwipeArea.setOnTouchListener((v, event) -> rightGestureDetector.onTouchEvent(event));
     }
 
     private void backButton() {
-        preferencesManager = new PreferencesManager(this);
+        preferencesManager = PreferencesManager.getInstance(this);
 
         String backButtonVisibility = preferencesManager.getBackButtonVisibility();
 
@@ -223,7 +219,7 @@ public class SwipeService extends Service {
             private int initialY;
             private float initialTouchX;
             private float initialTouchY;
-            private static final int CLICK_ACTION_THRESHOLD = 10;
+            private final int CLICK_ACTION_THRESHOLD = dpToPx(5); // 5dp
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -321,8 +317,8 @@ public class SwipeService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel serviceChannel = new NotificationChannel(
                     CHANNEL_ID,
-                    "Swipe Service Channel",
-                    NotificationManager.IMPORTANCE_DEFAULT
+                    getString(R.string.notification_channel),
+                    NotificationManager.IMPORTANCE_LOW
             );
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) {

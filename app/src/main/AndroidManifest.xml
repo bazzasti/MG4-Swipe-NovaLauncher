@@ -26,7 +26,12 @@
 
         <service
             android:name=".SwipeService"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Overlay touch zones for gesture detection on car head unit" />
+        </service>
 
         <service
             android:name=".AccService"
