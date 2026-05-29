@@ -86,8 +86,7 @@ class SwipeService : Service() {
 
         override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             val startY = e1?.rawY ?: return false
-            val diffY = e2.rawY - startY
-            if (diffY < 0 && Math.abs(diffY) > swipeThreshold && Math.abs(velocityY) > swipeVelocityThreshold) {
+            if (isSwipeUp(startY, e2.rawY, velocityY, swipeThreshold, swipeVelocityThreshold)) {
                 action.run()
                 return true
             }
@@ -264,5 +263,16 @@ class SwipeService : Service() {
     companion object {
         private const val CHANNEL_ID = "SwipeServiceChannel"
         const val DEFAULT_LAUNCHER = "com.teslacoilsw.launcher"
+        const val DEFAULT_SWIPE_THRESHOLD = 100
+        const val DEFAULT_SWIPE_VELOCITY = 100
+        const val DEFAULT_ZONE_HEIGHT_DP = 12
+        const val DEFAULT_BUTTON_X = 25
+        const val DEFAULT_BUTTON_Y = 5
+
+        /** Pure function: determines if a fling gesture qualifies as a swipe-up */
+        fun isSwipeUp(startY: Float, endY: Float, velocityY: Float, threshold: Int, velocityThreshold: Int): Boolean {
+            val diffY = endY - startY
+            return diffY < 0 && Math.abs(diffY) > threshold && Math.abs(velocityY) > velocityThreshold
+        }
     }
 }
