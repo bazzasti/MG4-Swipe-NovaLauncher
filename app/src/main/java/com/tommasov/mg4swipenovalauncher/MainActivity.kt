@@ -1,7 +1,6 @@
 package com.tommasov.mg4swipenovalauncher
 
 import android.content.Intent
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
