@@ -55,40 +55,21 @@ public class SwipeService extends Service {
         }
     }
 
-    private class LeftSwipeGestureListener extends SimpleOnGestureListener {
-        private static final int SWIPE_THRESHOLD = 100;
-        private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+    private static final int SWIPE_THRESHOLD = 100;
+    private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+
+    /** Reusable swipe-up gesture listener that triggers a callback on fling-up */
+    private class SwipeUpListener extends SimpleOnGestureListener {
+        private final Runnable action;
+        SwipeUpListener(Runnable action) { this.action = action; }
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            float startY = e1.getRawY();
-            float endY = e2.getRawY();
-            float diffY = endY - startY;
-
+            float diffY = e2.getRawY() - e1.getRawY();
             if (diffY < 0 && Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
-                performBackAction();
+                action.run();
                 return true;
             }
-
-            return false;
-        }
-    }
-
-    private class RightSwipeGestureListener extends SimpleOnGestureListener {
-        private static final int SWIPE_THRESHOLD = 100;
-        private static final int SWIPE_VELOCITY_THRESHOLD = 100;
-
-        @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            float startY = e1.getRawY();
-            float endY = e2.getRawY();
-            float diffY = endY - startY;
-
-            if (diffY < 0 && Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
-                openLauncher();
-                return true;
-            }
-
             return false;
         }
     }
@@ -98,12 +79,12 @@ public class SwipeService extends Service {
         sendBroadcast(intent);
     }
 
-    private void openLauncher() {
-        SharedPreferences sharedPreferences = getSharedPreferences("SwipeServicePrefs", Context.MODE_PRIVATE);
-        String packageName = sharedPreferences.getString("packageName", null);
+    static final String DEFAULT_LAUNCHER = "com.teslacoilsw.launcher";
 
+    private void openLauncher() {
+        String packageName = preferencesManager.getSelectedPackage();
         if (packageName == null) {
-            packageName = "com.teslacoilsw.launcher";
+            packageName = DEFAULT_LAUNCHER;
         }
 
         Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
@@ -139,7 +120,7 @@ public class SwipeService extends Service {
 
         WindowManager.LayoutParams leftParams = new WindowManager.LayoutParams(
                 halfScreenWidth,
-                10,
+                dpToPx(12),
                 layoutFlags,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
@@ -148,7 +129,7 @@ public class SwipeService extends Service {
 
         WindowManager.LayoutParams rightParams = new WindowManager.LayoutParams(
                 halfScreenWidth,
-                10,
+                dpToPx(12),
                 layoutFlags,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
@@ -158,8 +139,8 @@ public class SwipeService extends Service {
         windowManager.addView(leftSwipeArea, leftParams);
         windowManager.addView(rightSwipeArea, rightParams);
 
-        leftGestureDetector = new GestureDetector(this, new LeftSwipeGestureListener());
-        rightGestureDetector = new GestureDetector(this, new RightSwipeGestureListener());
+        leftGestureDetector = new GestureDetector(this, new SwipeUpListener(this::performBackAction));
+        rightGestureDetector = new GestureDetector(this, new SwipeUpListener(this::openLauncher));
 
         leftSwipeArea.setOnTouchListener(new View.OnTouchListener() { @SuppressLint("ClickableViewAccessibility")
             @Override
@@ -274,12 +255,20 @@ public class SwipeService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (!Settings.canDrawOverlays(this)) {
+            stopSelf();
+            return START_NOT_STICKY;
+        }
         return START_STICKY;
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private int dpToPx(int dp) {
+        return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
     private void createNotificationChannel() {

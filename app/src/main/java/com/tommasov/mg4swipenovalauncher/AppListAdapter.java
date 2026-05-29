@@ -23,12 +23,14 @@ public class AppListAdapter extends ArrayAdapter<ApplicationInfo> {
     private String selectedPackage;
     private List<ApplicationInfo> allApps;
     private boolean showSystemApps = false;
+    private java.util.Set<String> launcherPackages;
 
     public AppListAdapter(@NonNull Context context, List<ApplicationInfo> apps, String selectedPackage) {
         super(context, 0, apps);
         this.packageManager = context.getPackageManager();
         this.selectedPackage = selectedPackage;
         allApps = new ArrayList<>(apps);
+        launcherPackages = cacheLauncherPackages();
         filterApps();
     }
 
@@ -65,17 +67,18 @@ public class AppListAdapter extends ArrayAdapter<ApplicationInfo> {
         notifyDataSetChanged();
     }
 
-    private boolean isLauncherApp(ApplicationInfo appInfo) {
+    private java.util.Set<String> cacheLauncherPackages() {
+        java.util.Set<String> result = new java.util.HashSet<>();
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
-
-        List<ResolveInfo> resolveInfos = packageManager.queryIntentActivities(intent, 0);
-        for (ResolveInfo resolveInfo : resolveInfos) {
-            if (resolveInfo.activityInfo.packageName.equals(appInfo.packageName)) {
-                return true;
-            }
+        for (ResolveInfo ri : packageManager.queryIntentActivities(intent, 0)) {
+            result.add(ri.activityInfo.packageName);
         }
-        return false;
+        return result;
+    }
+
+    private boolean isLauncherApp(ApplicationInfo appInfo) {
+        return launcherPackages.contains(appInfo.packageName);
     }
 
     private boolean isSystemApp(ApplicationInfo appInfo) {

@@ -39,12 +39,12 @@ public class AccService extends AccessibilityService {
     }
 
     public void performBackAction() {
-        performGlobalAction(GLOBAL_ACTION_BACK);
+        try { performGlobalAction(GLOBAL_ACTION_BACK); } catch (Exception ignored) {}
     }
 
     @Override
     public void onDestroy() {
-        unregisterReceiver(backReceiver);
+        try { unregisterReceiver(backReceiver); } catch (Exception ignored) {}
         super.onDestroy();
     }
 }

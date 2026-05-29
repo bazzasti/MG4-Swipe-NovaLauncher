@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         String selectedPackage = preferencesManager.getSelectedPackage();
         if (selectedPackage == null) {
             for (ApplicationInfo appInfo : userApps) {
-                if (appInfo.packageName.equals("com.teslacoilsw.launcher")) {
+                if (appInfo.packageName.equals(SwipeService.DEFAULT_LAUNCHER)) {
                     selectedPackage = appInfo.packageName;
                     preferencesManager.saveSelectedPackage(selectedPackage);
                     break;
@@ -91,16 +91,12 @@ public class MainActivity extends AppCompatActivity {
 
         Switch switchBackButton = findViewById(R.id.switch_back_button);
 
-        switchBackButton.setChecked(!preferencesManager.getBackButtonVisibility().equals("VISIBLE"));
+        switchBackButton.setChecked(preferencesManager.isBackButtonHidden());
 
         switchBackButton.setOnClickListener(view -> {
-            if (preferencesManager.getBackButtonVisibility().equals("VISIBLE")) {
-                preferencesManager.saveBackButtonVisibility("INVISIBLE");
-                switchBackButton.setChecked(true);
-            } else {
-                preferencesManager.saveBackButtonVisibility("VISIBLE");
-                switchBackButton.setChecked(false);
-            }
+            boolean hide = !preferencesManager.isBackButtonHidden();
+            preferencesManager.saveBackButtonVisibility(hide ? "INVISIBLE" : "VISIBLE");
+            switchBackButton.setChecked(hide);
             stopSwipeService();
             startSwipeService();
         });

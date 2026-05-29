@@ -8,11 +8,14 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Button;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class PermissionActivity extends AppCompatActivity {
-    private static final int REQUEST_CODE_OVERLAY_PERMISSION = 1000;
-    private static final int REQUEST_CODE_ACCESSIBILITY_PERMISSION = 1001;
+    private final ActivityResultLauncher<Intent> permissionLauncher =
+        registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            result -> checkPermissions());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +42,7 @@ public class PermissionActivity extends AppCompatActivity {
         grantOverlayPermissionButton.setOnClickListener(v -> {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + getPackageName()));
-            startActivityForResult(intent, REQUEST_CODE_OVERLAY_PERMISSION);
+            permissionLauncher.launch(intent);
         });
     }
 
@@ -48,14 +51,8 @@ public class PermissionActivity extends AppCompatActivity {
         Button grantAccessibilityPermissionButton = findViewById(R.id.buttonGrantAccessibilityPermission);
         grantAccessibilityPermissionButton.setOnClickListener(v -> {
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-            startActivityForResult(intent, REQUEST_CODE_ACCESSIBILITY_PERMISSION);
+            permissionLauncher.launch(intent);
         });
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        checkPermissions();
     }
 
     private boolean isAccessibilityServiceEnabled(Context context, Class<? extends AccessibilityService> service) {
